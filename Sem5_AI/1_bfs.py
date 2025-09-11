@@ -20,10 +20,13 @@ def get_bfs_order(adj_matrix: list[list[int]]):
     visited[current_node] = True
     
     while len(queue) > 0:
+
+        # select first node from queue
         current_node = queue[0]
         queue = queue[1:]
         bfs_order.append(current_node)
         
+        # put all non-visited adjacent nodes in queue
         for adjacent_node in range(num_nodes):
             if adj_matrix[current_node][adjacent_node] == 1 and not visited[adjacent_node]:
                 queue.append(adjacent_node)
