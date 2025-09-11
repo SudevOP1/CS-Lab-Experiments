@@ -1,3 +1,8 @@
+debug = True
+
+def get_char_from_ascii(char):
+    return chr(char + 65)
+
 def input_adjacency_matrix(n: int):
     adj_matrix = []
     for i in range(n):
@@ -23,20 +28,28 @@ def get_bfs_order(adj_matrix: list[list[int]]):
             if adj_matrix[current_node][adjacent_node] == 1 and not visited[adjacent_node]:
                 queue.append(adjacent_node)
                 visited[adjacent_node] = True
+
+        # printing details
+        if debug:
+            print("="*30)
+            print(f"[DEBUG] To be explored: {', '.join([get_char_from_ascii(i) for i in queue])}")
+            print(f"[DEBUG] Visited Nodes : {', '.join([get_char_from_ascii(i) for i in bfs_order])}")
         
     return bfs_order
 
 def print_bfs_order(bfs_order: list[int]):
-    print(" -> ".join(map(str, bfs_order)))
+    if debug:
+        print("="*30)
+    print(" -> ".join(map(str, [get_char_from_ascii(i) for i in bfs_order])))
 
 if __name__ == "__main__":
     print_bfs_order(get_bfs_order(input_adjacency_matrix(int(input("number of elems: ")))))
     # print_bfs_order(get_bfs_order([
-    #     [0, 1, 1, 0, 0, 1, 0],
-    #     [1, 0, 0, 1, 0, 0, 1],
-    #     [1, 0, 0, 0, 0, 1, 0],
-    #     [0, 1, 0, 0, 1, 0, 1],
-    #     [0, 0, 1, 0, 0, 0, 0],
-    #     [1, 0, 1, 0, 0, 0, 0],
-    #     [0, 1, 0, 1, 0, 0, 0],
+    #     [0, 1, 1, 0, 0, 1, 0], # A
+    #     [1, 0, 0, 1, 0, 0, 1], # B
+    #     [1, 0, 0, 0, 0, 1, 0], # C
+    #     [0, 1, 0, 0, 1, 0, 1], # D
+    #     [0, 0, 1, 0, 0, 0, 0], # E
+    #     [1, 0, 1, 0, 0, 0, 0], # F
+    #     [0, 1, 0, 1, 0, 0, 0], # G
     # ]))
