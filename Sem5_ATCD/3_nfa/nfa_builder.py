@@ -113,6 +113,28 @@ def print_eps_closures(nfa: NFA) -> None:
         closure = eps_closure(state, nfa.transitions)
         print(f"{eps}-closure({state}) = {closure}")
 
+def print_nfa_and_eps_closure(exprs:list[str]) -> None:
+    print("="*50)
+    for expr in exprs:
+        print("="*50)
+
+        # printing expr
+        print(f"\"{expr}\"")
+        print("="*10)
+
+        # printing nfa
+        print("nfa:")
+        nfa_ok, nfa = build_and_print_nfa(expr)
+        print("="*10)
+
+        # printing eps closure
+        if nfa_ok:
+            print("epsilon closures:")
+            print_eps_closures(nfa)
+
+        print("="*50)
+    print("="*50)
+
 # main functions 👇
 def build_nfa(expr: str, num_states: int = 0) -> tuple[bool, NFA|str, int]:
     """
@@ -291,8 +313,7 @@ def eps_closure(state: int, transitions: list[dict]) -> list[int]:
     return closure
 
 if __name__ == "__main__":
-    print("="*50)
-    for expr in [
+    print_nfa_and_eps_closure([
         "a",
         "(a+b)*",
         "(a|b)*abb",
@@ -306,22 +327,4 @@ if __name__ == "__main__":
         "a.b",
         "a.b.c",
         "(ab+ba)*",
-    ]:
-        print("="*50)
-
-        # printing expr
-        print(f"\"{expr}\"")
-        print("="*10)
-
-        # printing nfa
-        print("nfa:")
-        nfa_ok, nfa = build_and_print_nfa(expr)
-        print("="*10)
-
-        # printing eps closure
-        if nfa_ok:
-            print("epsilon closures:")
-            print_eps_closures(nfa)
-
-        print("="*50)
-    print("="*50)
+    ])
