@@ -39,49 +39,76 @@ class NFA():
                 print(f'{t["s"]}{" "*(max_s_len-len(str(t["s"])))} -- {t["expr"]}{" "*(max_expr_len-len(t["expr"]))} -> {t["f"]}')
             print(f"final node = {self.final}")
 
+# helper functions 👇
+def remove_outer_paranthesis(expr: str):
+    if expr.startswith("(") and expr.endswith(")"):
+        bracket_count = 0
+        can_remove = True
+        for i, char in enumerate(expr[1:-1]):
+            if char == "(":
+                bracket_count += 1
+            elif char == ")":
+                bracket_count -= 1
+                if bracket_count < 0:
+                    can_remove = False
+                    break
+        if can_remove and bracket_count == 0:
+            expr = expr[1:-1]
+    return expr
+
+def split_expr(expr: str, separator: str):
+
+    # find index of separator at the top level (not inside parentheses)
+    num_brackets = 0
+    separator_index = None
+    for i, char in enumerate(expr):
+        if char == "(":
+            num_brackets += 1
+        elif char == ")":
+            num_brackets -= 1
+        elif char == separator and num_brackets == 0:
+            separator_index = i
+            break
+
+    if separator_index is None:
+        return None, None
+
+    # return left and right part of separator
+    expr1 = remove_outer_paranthesis(expr[:separator_index])
+    expr2 = remove_outer_paranthesis(expr[separator_index + 1:])
+    return expr1, expr2
+
+def add_explicit_concats(expr: str) -> str:
+    new_expr = ""
+    n = len(expr)
+    for i in range(n):
+        new_expr += expr[i]
+        # check if '.' is needed
+        if i < n - 1:
+            c1 = expr[i]
+            c2 = expr[i + 1]
+            # if c1 is a letter, ')', '*' or 'ε'
+            c1_valid = c1.isalnum() or c1 in [')', '*', eps]
+            # if c2 is a letter, '(', 'ε'
+            c2_valid = c2.isalnum() or c2 == '(' or c2 == eps
+
+            if c1_valid and c2_valid: new_expr += '.'
+    if new_expr != expr and debug:
+        print(f"[DEBUG] added explicit concats \"{expr}\" to \"{new_expr}\"")
+    return new_expr
+
+# main function 👇
 def build_nfa(expr: str, num_states: int = 0):
     """
     returns: success_bool, (nfa_obj or error_msg), num_states
     """
     try:
-        def remove_outer_paranthesis(expr: str):
-            if expr.startswith("(") and expr.endswith(")"):
-                bracket_count = 0
-                can_remove = True
-                for i, char in enumerate(expr[1:-1]):
-                    if char == "(":
-                        bracket_count += 1
-                    elif char == ")":
-                        bracket_count -= 1
-                        if bracket_count < 0:
-                            can_remove = False
-                            break
-                if can_remove and bracket_count == 0:
-                    expr = expr[1:-1]
-            return expr
-
-        def split_expr(expr: str, separator: str):
-
-            # find index of separator at the top level (not inside parentheses)
-            num_brackets = 0
-            separator_index = None
-            for i, char in enumerate(expr):
-                if char == "(":
-                    num_brackets += 1
-                elif char == ")":
-                    num_brackets -= 1
-                elif char == separator and num_brackets == 0:
-                    separator_index = i
-                    break
-
-            if separator_index is None:
-                return None, None
-
-            # return left and right part of separator
-            expr1 = remove_outer_paranthesis(expr[:separator_index])
-            expr2 = remove_outer_paranthesis(expr[separator_index + 1:])
-            return expr1, expr2
-
+        if len(expr) == 0:
+            return False, "expression cannot be null", num_states
+        expr = expr.replace("|", "+")
+        expr = remove_outer_paranthesis(expr) if expr.startswith("(") and expr.endswith(")") else expr
+        expr = add_explicit_concats(expr)
+        
         def get_nfa_single_letter(char: str):
             nonlocal num_states
 
@@ -186,9 +213,6 @@ def build_nfa(expr: str, num_states: int = 0):
 
             return True, final_nfa, num_states
 
-        if len(expr) == 0:
-            return False, "expression cannot be null", num_states
-        
         # kleene star: "(expr)*"
         if expr.endswith("*"):
             # for (expr)*
@@ -222,20 +246,9 @@ def build_nfa(expr: str, num_states: int = 0):
             if expr1 is not None:
                 return get_nfa_concat(expr1, expr2)
         
-        # multiple letters (implicit concatenation)
-        if (
-            not any(char in set("*()+.") for char in expr)
-            and len(expr) > 1
-        ):
-            # convert to explicit concatenation
-            return build_nfa(".".join(expr), num_states)
-        
         # single letter
         if len(expr) == 1 and expr not in "*()+.":
             return get_nfa_single_letter(expr)
-        
-        if expr.startswith("(") and expr.endswith(")"):
-            return build_nfa(remove_outer_paranthesis(expr), num_states)
         
         return False, f"invalid expression: {expr}", num_states
     except Exception as e:
@@ -263,4 +276,10 @@ if __name__ == "__main__":
         "a.b",
         "a.b.c",
         "(ab+ba)*",
+    # ] + [
+    #     "a",
+    #     "(a+b)*",
+    #     "(a|b)*abb",
+    #     "0(0|1)*1",
+    #     "ε",
     ]: build_and_print_nfa(expr)
