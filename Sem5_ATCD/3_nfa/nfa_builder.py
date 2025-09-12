@@ -7,7 +7,7 @@ class NFA():
         start: int = None,
         final: int = None,
         transitions: list[dict] = None,
-    ):
+    ) -> None:
         self.start = start
         self.final = final
         self.transitions = transitions if transitions is not None else []
@@ -17,7 +17,7 @@ class NFA():
         start: int,
         final: int,
         expr: str,
-    ):
+    ) -> None:
         t = {
             "s": start,
             "f": final,
@@ -28,7 +28,7 @@ class NFA():
             return
         self.transitions.append(t)
 
-    def print_transitions(self):
+    def print_transitions(self) -> None:
         if self.transitions:
             max_s_len = max(len(str(t["s"])) for t in self.transitions)
             max_expr_len = max(len(t["expr"]) for t in self.transitions)
@@ -40,7 +40,7 @@ class NFA():
             print(f"final node = {self.final}")
 
 # helper functions 👇
-def remove_outer_paranthesis(expr: str):
+def remove_outer_paranthesis(expr: str) -> str:
     if expr.startswith("(") and expr.endswith(")"):
         bracket_count = 0
         can_remove = True
@@ -56,7 +56,7 @@ def remove_outer_paranthesis(expr: str):
             expr = expr[1:-1]
     return expr
 
-def split_expr(expr: str, separator: str):
+def split_expr(expr: str, separator: str) -> tuple[str|None, str|None]:
 
     # find index of separator at the top level (not inside parentheses)
     num_brackets = 0
@@ -97,8 +97,24 @@ def add_explicit_concats(expr: str) -> str:
         print(f"[DEBUG] added explicit concats \"{expr}\" to \"{new_expr}\"")
     return new_expr
 
-# main function 👇
-def build_nfa(expr: str, num_states: int = 0):
+def build_and_print_nfa(expr: str) -> tuple[bool, NFA|None]:
+    nfa_ok, nfa, _ = build_nfa(expr)
+    if not nfa_ok:
+        print(f"something went wrong: {nfa}")
+    else:
+        if debug:
+            print(f"[DEBUG] transitions: {nfa.transitions}")
+        nfa.print_transitions()
+    return nfa_ok, nfa
+
+def print_eps_closures(nfa: NFA) -> None:
+    states = list(set([t["s"] for t in nfa.transitions] + [t["f"] for t in nfa.transitions]))
+    for state in states:
+        closure = eps_closure(state, nfa.transitions)
+        print(f"{eps}-closure({state}) = {closure}")
+
+# main functions 👇
+def build_nfa(expr: str, num_states: int = 0) -> tuple[bool, NFA|str, int]:
     """
     returns: success_bool, (nfa_obj or error_msg), num_states
     """
@@ -253,33 +269,59 @@ def build_nfa(expr: str, num_states: int = 0):
         return False, f"invalid expression: {expr}", num_states
     except Exception as e:
         return False, str(e), num_states
-    
-def build_and_print_nfa(expr: str):
-    print("="*30)
-    print(f"NFA for \"{expr}\":")
-    nfa_ok, nfa, _ = build_nfa(expr)
-    if not nfa_ok:
-        print(f"something went wrong: {nfa}")
-    else:
-        if debug:
-            print(f"[DEBUG] transitions: {nfa.transitions}")
-        nfa.print_transitions()
-    print("="*30)
+
+def eps_closure(state: int, transitions: list[dict]) -> list[int]:
+    closure = [state,]
+    queue = [state,] # bfs
+    visited = []
+    while len(queue) != 0:
+        current_state = queue[0]
+        queue = queue[1:]
+        for transition in transitions:
+            s_state = transition["s"]
+            f_state = transition["f"]
+            expr = transition["expr"]
+            if (
+                s_state == current_state
+                and expr == eps
+                and f_state not in visited
+            ):
+                closure.append(f_state)
+                queue.append(f_state)
+    return closure
 
 if __name__ == "__main__":
+    print("="*50)
     for expr in [
-        "aa",
-        "ab", 
         "a",
+        "(a+b)*",
+        "(a|b)*abb",
+        "0(0|1)*1",
+        "ε",
+
+        "ab", 
+        "a*",
         "(a)*",
         "a+b",
         "a.b",
         "a.b.c",
         "(ab+ba)*",
-    # ] + [
-    #     "a",
-    #     "(a+b)*",
-    #     "(a|b)*abb",
-    #     "0(0|1)*1",
-    #     "ε",
-    ]: build_and_print_nfa(expr)
+    ]:
+        print("="*50)
+
+        # printing expr
+        print(f"\"{expr}\"")
+        print("="*10)
+
+        # printing nfa
+        print("nfa:")
+        nfa_ok, nfa = build_and_print_nfa(expr)
+        print("="*10)
+
+        # printing eps closure
+        if nfa_ok:
+            print("epsilon closures:")
+            print_eps_closures(nfa)
+
+        print("="*50)
+    print("="*50)
