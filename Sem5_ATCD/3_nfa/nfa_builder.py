@@ -314,17 +314,15 @@ def eps_closure(state: int, transitions: list[dict]) -> list[int]:
 
 if __name__ == "__main__":
     print_nfa_and_eps_closure([
+        "(ab|ba)*",
+        "(a|b)*(aba)(a|b)*",
+        "(0|1)*01(0|1)*10",
+        "(a|b)(a|b)*(aa|bb)",
+        "(0|1)*0(0|1)*0(0|1)*",
+
         "a",
         "(a+b)*",
         "(a|b)*abb",
         "0(0|1)*1",
         "ε",
-
-        "ab", 
-        "a*",
-        "(a)*",
-        "a+b",
-        "a.b",
-        "a.b.c",
-        "(ab+ba)*",
     ])
