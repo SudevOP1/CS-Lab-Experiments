@@ -9,8 +9,6 @@ num_elems = 100
 partition_types = [
     "normal_lomuto    ",
     "normal_hoare     ",
-    # "randomized_lomuto",
-    # "randomized_hoare ",
     "my_method        ",
 ]
 
@@ -30,7 +28,7 @@ if __name__ == "__main__":
         # print(f"test no. {i} done", flush=True)
     
     print()
-    print(f"total times for {num_elems} elements across {num_tries} tries:")
+    print(f"total seconds for {num_elems} elements across {num_tries} tries:")
     for p in partition_types:
         print(f"{p} : {sum(times[p]):.5f}")
     print()

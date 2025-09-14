@@ -1,10 +1,13 @@
-a = 5
-for i in range(10):
-    a +=1
-    for j in range(10):
-        a +=1
-        for k in range(10):
+
+def n3(n):
+    a = 5
+    for i in range(n):
+        a += 1
+        for j in range(n):
             a += 1
-for k in range(10):
-    a += 1
-print(a)
+            for k in range(n):
+                a += 1
+    for k in range(n):
+        a += 1
+    return a
+

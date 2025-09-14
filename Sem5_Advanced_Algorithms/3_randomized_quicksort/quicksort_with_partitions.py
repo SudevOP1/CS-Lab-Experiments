@@ -61,12 +61,6 @@ def quicksort_normal_hoare(arr: list):
     sorted_arr2 = quicksort_normal_hoare(arr[p + 1:])
     return sorted_arr1 + [arr[p],] + sorted_arr2
 
-def quicksort_randomized_lomuto(arr: list):
-    pass
-
-def quicksort_randomized_hoare(arr: list):
-    pass
-
 def quicksort_my_method(arr: list):
 
     # edge case: length < 3
@@ -96,14 +90,10 @@ def quicksort(arr: list, partition_type: str):
     partition_types:
         normal lomuto
         normal hoare
-        randomized lomuto
-        randomized hoare
         my method
     """
     if partition_type == "normal_lomuto":       return quicksort_normal_lomuto(arr)
     if partition_type == "normal_hoare":        return quicksort_normal_hoare(arr)
-    if partition_type == "randomized_lomuto":   return quicksort_randomized_lomuto(arr)
-    if partition_type == "randomized_hoare":    return quicksort_randomized_hoare(arr)
     if partition_type == "my_method":           return quicksort_my_method(arr)
     raise Exception("Invalid partition_type")
 
@@ -112,8 +102,6 @@ if __name__ == "__main__":
     partition_types = [
         "normal_lomuto    ",
         "normal_hoare     ",
-        "randomized_lomuto",
-        "randomized_hoare ",
         "my_method        ",
     ]
     
