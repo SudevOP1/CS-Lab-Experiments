@@ -1,7 +1,7 @@
 # 8 puzzle problem
 
 from typing import Callable
-debug = True
+debug = False
 
 def hill_climbing_algo(
     init_state: list[list[int]],
@@ -58,14 +58,14 @@ def hill_climbing_algo(
             return False, current_state_heu
         if debug:
             print(f"[DEBUG] current state heu = {current_state_heu}")
-        min_hue = min(heu_values)
-        if min_hue > current_state_heu:
+        min_heu = min(heu_values)
+        if min_heu >= current_state_heu:
             if debug:
                 print("="*40)
             return True, current_state
 
         # current state = next state with max heu
-        current_state_ind = heu_values.index(min_hue)
+        current_state_ind = heu_values.index(min_heu)
         current_state = next_states[current_state_ind]
         if debug:
             print(f"[DEBUG] selecting next step with index {current_state_ind}")
