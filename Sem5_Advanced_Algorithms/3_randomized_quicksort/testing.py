@@ -2,9 +2,9 @@ import random, time
 from quicksort_with_partitions import quicksort
 
 def generate_random_arr(n):
-    return [random.randint(0, n) for i in range(n)]
+    return [random.randint(0, n) for _ in range(n)]
 
-num_tries = 100
+num_tries = 100000
 num_elems = 100
 partition_types = [
     "normal_lomuto    ",
