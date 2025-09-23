@@ -42,11 +42,13 @@ def quicksort_normal_hoare(arr: list):
 
     while True:
         # move i to right until >= pivot
+        # i = num from left >= pivot
         i += 1
         while arr[i] < arr[p]:
             i += 1
         
         # move j to left until <= pivot
+        # j = num from right <= pivot
         j -= 1
         while arr[j] > arr[p]:
             j -= 1
@@ -85,16 +87,69 @@ def quicksort_my_method(arr: list):
     sorted_arr2 = quicksort_my_method(arr[pivot_ind+1:])
     return sorted_arr1 + [arr[pivot_ind]] + sorted_arr2
 
+def quicksort_random_lomuto(arr: list):
+    if len(arr) <= 1:
+        return arr
+
+    i = -1
+    j = 0
+    p = len(arr) - 1
+
+    r = random.randint(0, len(arr) - 1)
+    arr[r], arr[p] = arr[p], arr[r]
+
+    while j < p:
+        if arr[j] < arr[p]:
+            i += 1
+            arr[i], arr[j] = arr[j], arr[i]
+        j += 1
+    arr[i + 1], arr[p] = arr[p], arr[i + 1]
+    p = i + 1
+
+    sorted_arr1 = quicksort_random_lomuto(arr[:p])
+    sorted_arr2 = quicksort_random_lomuto(arr[p + 1:])
+    return sorted_arr1 + [arr[p],] + sorted_arr2
+
+def quicksort_random_hoare(arr: list):
+    if len(arr) <= 1:
+        return arr
+
+    i = -1
+    j = len(arr)
+    p = 0
+
+    r = random.randint(0, len(arr) - 1)
+    arr[r], arr[p] = arr[p], arr[r]
+
+    while True:
+        # move i to right until >= pivot
+        # i = num from left >= pivot
+        i += 1
+        while arr[i] < arr[p]:
+            i += 1
+        
+        # move j to left until <= pivot
+        # j = num from right <= pivot
+        j -= 1
+        while arr[j] > arr[p]:
+            j -= 1
+
+        if i >= j:
+            arr[j], arr[p] = arr[p], arr[j]
+            p = j
+            break
+        arr[i], arr[j] = arr[j], arr[i]
+
+    sorted_arr1 = quicksort_random_hoare(arr[:p])
+    sorted_arr2 = quicksort_random_hoare(arr[p + 1:])
+    return sorted_arr1 + [arr[p],] + sorted_arr2
+
 def quicksort(arr: list, partition_type: str):
-    """
-    partition_types:
-        normal lomuto
-        normal hoare
-        my method
-    """
     if partition_type == "normal_lomuto":       return quicksort_normal_lomuto(arr)
     if partition_type == "normal_hoare":        return quicksort_normal_hoare(arr)
     if partition_type == "my_method":           return quicksort_my_method(arr)
+    if partition_type == "random_lomuto":       return quicksort_random_lomuto(arr)
+    if partition_type == "random_hoare":        return quicksort_random_hoare(arr)
     raise Exception("Invalid partition_type")
 
 if __name__ == "__main__":
@@ -103,10 +158,12 @@ if __name__ == "__main__":
         "normal_lomuto    ",
         "normal_hoare     ",
         "my_method        ",
+        "random_lomuto    ",
+        "random_hoare     ",
     ]
     
     print()
     print(arr)
     for p in partition_types:
-        print(f"{p} : {str(quicksort(arr, p.strip()))}")
+        print(f"{p} : {str(quicksort(arr[:], p.strip()))}")
     print()
