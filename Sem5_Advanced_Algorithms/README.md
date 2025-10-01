@@ -4,4 +4,6 @@
 ✅ 2. amortized_analysis<br>
 ✅ 3. randomized_quicksort<br>
 ✅ 4. skyline problem<br>
+❌ 5. <br>
+❌ 6. push relabel<br>
 
