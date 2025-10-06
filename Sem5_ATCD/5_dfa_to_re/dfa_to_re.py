@@ -76,6 +76,52 @@ def dfa_to_re(dfa: DFA) -> str:
         return q_expr + p_expr
 
     def clean_re(re: str) -> str:
+        
+        while "()" in re:
+            re = re.replace("()", "")
+
+        changed = True
+        while changed:
+            changed = False
+
+            i = 0
+            while i < len(re):
+                if re[i] == "(":
+                    j = i + 1
+                    depth = 1
+                    while j < len(re) and depth > 0:
+                        if re[j] == "(":
+                            depth += 1
+                        elif re[j] == ")":
+                            depth -= 1
+                        j += 1
+
+                    if depth == 0:
+                        contents = re[i+1:j-1]
+                        after = re[j:]
+
+                        # remove brackets if single group followed by *
+                        if after.startswith("*"):
+                            if len(contents) == 1 and contents.isalnum():
+                                re = re[:i] + contents + after
+                                changed = True
+                                break
+                            else:
+                                i += 1
+                                continue
+
+                        # remove brackets if no operators inside except *
+                        if all(ch.isalnum() or ch == "*" for ch in contents):
+                            re = re[:i] + contents + after
+                            changed = True
+                            break
+
+                        # remove redundant brackets
+                        if contents.startswith("(") and contents.endswith(")"):
+                            re = re[:i] + contents + after
+                            changed = True
+                            break
+                i += 1
         return re
 
     return clean_re(dfa_to_re_of_node(dfa.final))
@@ -83,13 +129,21 @@ def dfa_to_re(dfa: DFA) -> str:
 
 if __name__ == "__main__":
     
-    # test case
-    my_dfa = DFA(start=1, final=3, transitions=[
-        {"s": 1, "f": 1, "expr": "a"},
-        {"s": 1, "f": 2, "expr": "b"},
-        {"s": 2, "f": 2, "expr": "a"},
-        {"s": 2, "f": 3, "expr": "b"},
-        {"s": 3, "f": 3, "expr": "a"},
-        {"s": 3, "f": 3, "expr": "b"},
-    ])
-    print(dfa_to_re(my_dfa))
+    # test cases
+    for i, dfa in enumerate([
+        DFA(start=1, final=3, transitions=[
+            {"s": 1, "f": 1, "expr": "a"},
+            {"s": 1, "f": 2, "expr": "b"},
+            {"s": 2, "f": 2, "expr": "a"},
+            {"s": 2, "f": 3, "expr": "b"},
+            {"s": 3, "f": 3, "expr": "a"},
+            {"s": 3, "f": 3, "expr": "b"},
+        ]), # a*ba*b(a+b)*
+        DFA(start=1, final=2, transitions=[
+            {"s": 1, "f": 1, "expr": "a"},
+            {"s": 1, "f": 2, "expr": "b"},
+            {"s": 2, "f": 2, "expr": "b"},
+            {"s": 2, "f": 1, "expr": "a"},
+        ]), # (b+aa*)* failing
+    ]):
+        print(f"dfa {i}: {dfa_to_re(dfa)}")
