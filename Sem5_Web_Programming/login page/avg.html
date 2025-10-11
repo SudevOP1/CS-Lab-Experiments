@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <title>Login Page</title>
+    <link rel="stylesheet" href="login.css" />
+  </head>
+  <body>
+    <div class="login-container">
+      <h1>Enter CGPA</h1>
+      <form>
+        <div class="input-container">
+          <label for="username" class="input-label">Sem1</label>
+          <input
+            type="number"
+            name="sem1"
+            id="sem1"
+            placeholder="Sem1 CGPA"
+            class="input"
+          />
+        </div>
+
+        <div class="input-container">
+          <label for="username" class="input-label">Sem2</label>
+          <input
+            type="number"
+            name="sem2"
+            id="sem2"
+            placeholder="Sem2 CGPA"
+            class="input"
+          />
+        </div>
+
+        <button class="submit-btn" type="submit">Submit</button>
+
+        <p class="avg-text" id="avg"></p>
+      </form>
+    </div>
+    <script>
+      document.querySelector("form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        let cgpas = [
+          document.getElementById("sem1").value,
+          document.getElementById("sem2").value,
+        ];
+        let avgText = document.getElementById("avg");
+        let cgpaSum = 0;
+        for (let cg of cgpas) {
+          if (!cg) {
+            alert("enter all sem cgpas");
+            return;
+          }
+          if (!(0 <= Number(cg) && Number(cg) <= 10)) {
+            alert("cgpa should be >0 and <10");
+            return;
+          }
+          cgpaSum += Number(cg);
+        }
+        avgText.innerText = `avg cgpa = ${cgpaSum / cgpas.length}`;
+      });
+    </script>
+  </body>
+</html>

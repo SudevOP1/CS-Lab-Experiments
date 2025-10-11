@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <div
+      class="font-[rubik] w-full min-h-screen bg-yellow-400 bg-[radial-gradient(#000000_1px,transparent_1px)] bg-[size:20px_20px] flex items-center justify-center"
+    >
+      <!-- fixed div (for task input) -->
+      <div id="inputModal" class="fixed flex items-center justify-center w-full h-full bg-black/50 hidden">
+        <div
+          class="bg-cyan-200 w-[80%] flex flex-col px-15 py-12 border-3 border-black rounded-3xl gap-6
+          shadow-[0px_0px_100px_100px_rgba(0,_0,_0,_0.3)]"
+        >
+          <p class="font-bold text-3xl">Add Task</p>
+          <input
+            id="taskInput"
+            type="text"
+            placeholder="enter task name"
+            class="bg-white px-4 py-1 border-3 border-black rounded-full"
+          />
+          <div class="flex flex-row gap-4">
+            <button
+              id="submitTask"
+              class="flex-1 bg-green-400 px-8 py-2 text-lg rounded-full border-3 font-medium border-black cursor-pointer outline-none shadow-[3px_3px_0px_0px_#000000] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition duration-100"
+            >
+              Submit
+            </button>
+            <button
+              id="cancelTask"
+              class="flex-1 bg-red-400 px-8 py-2 text-lg rounded-full border-3 font-medium border-black cursor-pointer outline-none shadow-[3px_3px_0px_0px_#000000] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition duration-100"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- main div -->
+      <div
+        class="w-[70%] bg-white px-25 py-20 my-10 border-3 border-black rounded-3xl"
+      >
+        <div class="w-full flex flex-row items-center justify-between">
+          <span class="text-4xl font-bold">Todo List</span>
+          <button
+            id="addTaskBtn"
+            class="bg-green-400 px-8 py-2 text-xl rounded-full border-3 font-medium border-black cursor-pointer outline-none shadow-[3px_3px_0px_0px_#000000] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition duration-100"
+          >
+            + Add Task
+          </button>
+        </div>
+        <div class="tasks-container | flex flex-col"></div>
+      </div>
+    </div>
+
+    <script>
+      let tasks = JSON.parse(localStorage.getItem("tasks") || null);
+      if (!tasks) {
+        tasks = [];
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+      }
+
+      let inputting = false;
+      let tasksContainer =
+        document.getElementsByClassName("tasks-container")[0];
+      let inputModal = document.getElementById("inputModal");
+      let taskInput = document.getElementById("taskInput");
+      let addTaskBtn = document.getElementById("addTaskBtn");
+      let submitTaskBtn = document.getElementById("submitTask");
+      let cancelTaskBtn = document.getElementById("cancelTask");
+
+      function toggleInputting() {
+        inputting = !inputting;
+        if (inputting) {
+          inputModal.classList.remove("hidden");
+          taskInput.focus();
+        } else {
+          inputModal.classList.add("hidden");
+          taskInput.value = "";
+        }
+      }
+
+      function renderTasks() {
+        tasksContainer.innerHTML = tasks
+          .map((task, idx) => {
+            return `
+              <div
+                class="w-full border-3 px-5 py-4 text-md rounded-2xl flex flex-row
+                  gap-5 items-center mt-5 bg-cyan-200 border-black"
+              >
+                <button
+                  name="${idx}"
+                  id="task-${idx}"
+                  onclick="toggleTask(${idx})"
+                  class="w-8 h-8 text-lg flex items-center justify-center rounded-full
+                    border-2 border-black cursor-pointer ${
+                      task.completed ? "bg-green-400" : "bg-red-400"
+                    }"
+                >
+                  ${task.completed ? "✔" : "✘"}
+                </button>
+                <span
+                  class="text-lg flex-1 overflow-x-auto custom-scrollbar ${
+                    task.completed ? "line-through" : ""
+                  }"
+                >${task.name}</span>
+                <button onclick="deleteTask(${idx})"
+                  class="bg-red-400 pl-2 pr-3 py-1 text-md rounded-full border-3 font-medium border-black cursor-pointer outline-none
+                  shadow-[3px_3px_0px_0px_#000000] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition duration-100"
+                >- Remove</button>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      function addTask() {
+        const taskName = taskInput.value.trim();
+        if (taskName) {
+          tasks.push({
+            name: taskName,
+            completed: false,
+          });
+          localStorage.setItem("tasks", JSON.stringify(tasks));
+          renderTasks();
+          toggleInputting();
+        }
+      }
+
+      function deleteTask(idx) {
+        tasks.splice(idx, 1);
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+        renderTasks();
+      }
+
+      function toggleTask(idx) {
+        tasks[idx].completed = !tasks[idx].completed;
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+        renderTasks();
+      }
+
+      addTaskBtn.addEventListener("click", toggleInputting);
+      submitTaskBtn.addEventListener("click", addTask);
+      cancelTaskBtn.addEventListener("click", toggleInputting);
+      taskInput.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+          addTask();
+        }
+      });
+
+      renderTasks();
+    </script>
+
+    <style>
+      @layer utilities {
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #000;
+          border-radius: 9999px;
+        }
+
+        .custom-scrollbar {
+          scrollbar-color: #000 transparent;
+          scrollbar-width: thin;
+        }
+      }
+    </style>
+  </body>
+</html>

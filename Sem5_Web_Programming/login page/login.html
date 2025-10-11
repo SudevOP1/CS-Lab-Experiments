@@ -1,0 +1,58 @@
+<html>
+  <head>
+    <title>Login Page</title>
+    <link rel="stylesheet" href="login.css" />
+  </head>
+  <body>
+    <div class="login-container">
+      <h1>Login</h1>
+      <form id="loginForm">
+        <div class="input-container">
+          <label for="username" class="input-label">Username</label>
+          <input
+            type="text"
+            name="username"
+            id="username"
+            placeholder="Username"
+            class="input"
+          />
+        </div>
+
+        <div class="input-container">
+          <label for="password" class="input-label">Password</label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            placeholder="Password"
+            class="input"
+          />
+        </div>
+
+        <button class="submit-btn" type="submit">Submit</button>
+
+        <a class="center-link" href="https://youtube.com">Register Instead!</a>
+      </form>
+    </div>
+    <script>
+      const allowedCreds = [{ username: "sudev", password: "sudev" }];
+
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
+          if (
+            allowedCreds.some(
+              (cred) => cred.username === username && cred.password === password
+            )
+          ) {
+            window.location.href = "http://127.0.0.1:5500/avg.html";
+          } else {
+            alert("invalid creds!");
+          }
+        });
+    </script>
+  </body>
+</html>
