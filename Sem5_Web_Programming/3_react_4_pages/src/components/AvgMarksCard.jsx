@@ -9,24 +9,24 @@ const AvgMarksCard = ({ nextPage, prevPage, userData, setUserData }) => {
     let newMarks = [...marks];
     newMarks.push({ name: "new subject", score: 0 });
     setMarks(newMarks);
-    calcAvgMarks();
+    calcAvgMarks(newMarks);
   };
 
   let handleChangeMarks = (idx, name, score) => {
     let newMarks = [...marks];
     newMarks[idx] = { name: name, score: score };
     setMarks(newMarks);
-    calcAvgMarks();
+    calcAvgMarks(newMarks);
   };
 
   let handleRemoveMarks = (idx) => {
     let newMarks = [...marks];
     newMarks.splice(idx, 1);
     setMarks(newMarks);
-    calcAvgMarks();
+    calcAvgMarks(newMarks);
   };
 
-  let calcAvgMarks = () => {
+  let calcAvgMarks = (marks) => {
     if (marks.length === 0) {
       return 0;
     }
@@ -58,7 +58,7 @@ const AvgMarksCard = ({ nextPage, prevPage, userData, setUserData }) => {
             <input
               type="number"
               onChange={(e) =>
-                handleChangeMarks(idx, mark.name, e.target.value)
+                handleChangeMarks(idx, mark.name, Number(e.target.value))
               }
               value={mark.score}
               placeholder="subject name"
