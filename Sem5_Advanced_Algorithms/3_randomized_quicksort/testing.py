@@ -1,11 +1,6 @@
-import random, time
+import random, time, json
 from quicksort_with_partitions import quicksort
 
-def generate_random_arr(n):
-    return [random.randint(0, n) for _ in range(n)]
-
-num_tries = 100000
-num_elems = 100
 partition_types = [
     "normal_lomuto    ",
     "normal_hoare     ",
@@ -14,7 +9,10 @@ partition_types = [
     "random_hoare     ",
 ]
 
-if __name__ == "__main__":
+def generate_random_arr(n):
+    return [random.randint(0, n) for _ in range(n)]
+
+def test_random(num_tries: int, num_elems: int):
     times = {}
     for p in partition_types:
         times[p] = []
@@ -35,5 +33,29 @@ if __name__ == "__main__":
         print(f"{p} : {sum(times[p]):.5f}")
     print()
 
+def test_3(num_tries: int, num_elems: int):
+    times = {}
+    for _ in range(num_tries):
+        rand_arr = generate_random_arr(num_elems)
+        
+        for type, arr in {
+            "sorted": sorted(rand_arr),
+            "random": rand_arr,
+            "descending": sorted(rand_arr[::-1]),
+        }.items():
+            times[type] = {} if type not in times.keys() else times[type]
+            for p in partition_types:
+                t1 = time.time()
+                sorted_arr = quicksort(arr, p.strip())
+                t2 = time.time()
+                times[type][p] = 0 if p not in times[type].keys() else times[type][p]
+                times[type][p] += (t2 - t1)
+    
+    print(f"total seconds for {num_elems} elements across {num_tries} tries:")
+    print(json.dumps(times, indent=2))
+        
 
-
+if __name__ == "__main__":
+    
+    # test_random(10000, 100)
+    test_3(10000, 100)
