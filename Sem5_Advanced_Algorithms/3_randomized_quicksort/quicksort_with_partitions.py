@@ -1,61 +1,169 @@
-import random, time, json
-from quicksort_with_partitions import quicksort
+import random
 
-partition_types = [
-    "normal_lomuto    ",
-    "normal_hoare     ",
-    "my_method        ",
-    "random_lomuto    ",
-    "random_hoare     ",
-]
+# helper function
+def get_median_pivot_index(arr: list):
+    index1 = 0
+    index2 = len(arr) // 2
+    index3 = len(arr) - 1
 
-def generate_random_arr(n):
-    return [random.randint(0, n) for _ in range(n)]
+    if arr[index1] <= arr[index2] <= arr[index3] or arr[index3] <= arr[index2] <= arr[index1]:
+        return index2
+    elif arr[index2] <= arr[index1] <= arr[index3] or arr[index3] <= arr[index1] <= arr[index2]:
+        return index1
+    return index3
 
-def test_random(num_tries: int, num_elems: int):
-    times = {}
-    for p in partition_types:
-        times[p] = []
+def quicksort_normal_lomuto(arr: list):
+    if len(arr) <= 1:
+        return arr
 
-    for i in range(num_tries):
-        unsorted_arr = generate_random_arr(num_elems)
-        # print(unsorted_arr)
-        for p in partition_types:
-            t1 = time.time()
-            arr = quicksort(unsorted_arr, p.strip())
-            t2 = time.time()
-            times[p].append(t2 - t1)
-        # print(f"test no. {i} done")
+    i = -1
+    j = 0
+    p = len(arr) - 1
+
+    while j < p:
+        if arr[j] < arr[p]:
+            i += 1
+            arr[i], arr[j] = arr[j], arr[i]
+        j += 1
+    arr[i + 1], arr[p] = arr[p], arr[i + 1]
+    p = i + 1
+
+    sorted_arr1 = quicksort_normal_lomuto(arr[:p])
+    sorted_arr2 = quicksort_normal_lomuto(arr[p + 1:])
+    return sorted_arr1 + [arr[p],] + sorted_arr2
+
+def quicksort_normal_hoare(arr: list):
+    if len(arr) <= 1:
+        return arr
     
-    print()
-    print(f"total seconds for {num_elems} elements across {num_tries} tries:")
-    for p in partition_types:
-        print(f"{p} : {sum(times[p]):.5f}")
-    print()
+    i = -1
+    j = len(arr)
+    p = 0
 
-def test_3(num_tries: int, num_elems: int):
-    times = {}
-    for _ in range(num_tries):
-        rand_arr = generate_random_arr(num_elems)
+    while True:
+        # move i to right until >= pivot
+        # i = num from left >= pivot
+        i += 1
+        while arr[i] < arr[p]:
+            i += 1
         
-        for type, arr in {
-            "sorted": sorted(rand_arr),
-            "random": rand_arr,
-            "descending": sorted(rand_arr[::-1]),
-        }.items():
-            times[type] = {} if type not in times.keys() else times[type]
-            for p in partition_types:
-                t1 = time.time()
-                sorted_arr = quicksort(arr, p.strip())
-                t2 = time.time()
-                times[type][p] = 0 if p not in times[type].keys() else times[type][p]
-                times[type][p] += (t2 - t1)
-    
-    print(f"total seconds for {num_elems} elements across {num_tries} tries:")
-    print(json.dumps(times, indent=2))
+        # move j to left until <= pivot
+        # j = num from right <= pivot
+        j -= 1
+        while arr[j] > arr[p]:
+            j -= 1
+
+        if i >= j:
+            arr[j], arr[p] = arr[p], arr[j]
+            p = j
+            break
+        arr[i], arr[j] = arr[j], arr[i]
+
+    sorted_arr1 = quicksort_normal_hoare(arr[:p])
+    sorted_arr2 = quicksort_normal_hoare(arr[p + 1:])
+    return sorted_arr1 + [arr[p],] + sorted_arr2
+
+def quicksort_my_method(arr: list):
+
+    # edge case: length < 3
+    if len(arr) <= 1:
+        return arr
+    if len(arr) == 2:
+        return arr if arr[0] <= arr[1] else [arr[1], arr[0]]
+
+    pivot_ind = get_median_pivot_index(arr)
+    arr[pivot_ind], arr[-1] = arr[-1], arr[pivot_ind]
+    pivot_val = arr[-1]
+
+    left = -1
+    for right in range(len(arr) - 1):
+        if arr[right] < pivot_val:
+            left += 1
+            arr[left], arr[right] = arr[right], arr[left]
+    arr[left + 1], arr[-1] = arr[-1], arr[left + 1]
+    pivot_ind = left + 1
+
+    sorted_arr1 = quicksort_my_method(arr[:pivot_ind])
+    sorted_arr2 = quicksort_my_method(arr[pivot_ind+1:])
+    return sorted_arr1 + [arr[pivot_ind]] + sorted_arr2
+
+def quicksort_random_lomuto(arr: list):
+    if len(arr) <= 1:
+        return arr
+
+    i = -1
+    j = 0
+    p = len(arr) - 1
+
+    r = random.randint(0, len(arr) - 1)
+    arr[r], arr[p] = arr[p], arr[r]
+
+    while j < p:
+        if arr[j] < arr[p]:
+            i += 1
+            arr[i], arr[j] = arr[j], arr[i]
+        j += 1
+    arr[i + 1], arr[p] = arr[p], arr[i + 1]
+    p = i + 1
+
+    sorted_arr1 = quicksort_random_lomuto(arr[:p])
+    sorted_arr2 = quicksort_random_lomuto(arr[p + 1:])
+    return sorted_arr1 + [arr[p],] + sorted_arr2
+
+def quicksort_random_hoare(arr: list):
+    if len(arr) <= 1:
+        return arr
+
+    i = -1
+    j = len(arr)
+    p = 0
+
+    r = random.randint(0, len(arr) - 1)
+    arr[r], arr[p] = arr[p], arr[r]
+
+    while True:
+        # move i to right until >= pivot
+        # i = num from left >= pivot
+        i += 1
+        while arr[i] < arr[p]:
+            i += 1
         
+        # move j to left until <= pivot
+        # j = num from right <= pivot
+        j -= 1
+        while arr[j] > arr[p]:
+            j -= 1
+
+        if i >= j:
+            arr[j], arr[p] = arr[p], arr[j]
+            p = j
+            break
+        arr[i], arr[j] = arr[j], arr[i]
+
+    sorted_arr1 = quicksort_random_hoare(arr[:p])
+    sorted_arr2 = quicksort_random_hoare(arr[p + 1:])
+    return sorted_arr1 + [arr[p],] + sorted_arr2
+
+def quicksort(arr: list, partition_type: str):
+    if partition_type == "normal_lomuto":       return quicksort_normal_lomuto(arr)
+    if partition_type == "normal_hoare":        return quicksort_normal_hoare(arr)
+    if partition_type == "my_method":           return quicksort_my_method(arr)
+    if partition_type == "random_lomuto":       return quicksort_random_lomuto(arr)
+    if partition_type == "random_hoare":        return quicksort_random_hoare(arr)
+    raise Exception("Invalid partition_type")
 
 if __name__ == "__main__":
+    arr = [4, 10, 9, 4, 8, 0, 6, 0, 10, 4]
+    partition_types = [
+        "normal_lomuto    ",
+        "normal_hoare     ",
+        "my_method        ",
+        "random_lomuto    ",
+        "random_hoare     ",
+    ]
     
-    # test_random(10000, 100)
-    test_3(10000, 100)
+    print()
+    print(arr)
+    for p in partition_types:
+        print(f"{p} : {str(quicksort(arr[:], p.strip()))}")
+    print()
