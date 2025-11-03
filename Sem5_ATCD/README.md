@@ -7,5 +7,5 @@
 ✅ 5. Simplification of Grammar<br>
 ✅ 6. Lexical Analyzer<br>
 ✅ 7. Convert RE to NFA in JFlap<br>
-❌ 8. Pushdown Automata for OOD palindromes<br>
+✅ 8. Pushdown Automata for Odd palindromes<br>
 ❌ 9. Code optimization techniques<br>
