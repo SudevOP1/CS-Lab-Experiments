@@ -25,8 +25,9 @@ public class RBTree {
         }
 
         public Node delete(int value) {
-            if (!contains(this, value))
+            if (!contains(this, value)) {
                 return this;
+            }
 
             Node root = deleteRec(this, value);
             if (root != null)
