@@ -30,8 +30,9 @@ public class RBTree {
             }
 
             Node root = deleteRec(this, value);
-            if (root != null)
+            if (root != null) {
                 root.color = BLACK;
+            }
             return root;
         }
 
@@ -132,8 +133,9 @@ public class RBTree {
         }
 
         private static Node min(Node h) {
-            while (h.lChild != null)
+            while (h.lChild != null) {
                 h = h.lChild;
+            }
             return h;
         }
 
