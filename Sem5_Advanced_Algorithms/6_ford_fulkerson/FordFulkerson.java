@@ -118,7 +118,7 @@ public class FordFulkerson {
         // int maxFlow = fordFulkerson(inputCapactiy());
         int maxFlow = fordFulkerson(graphToTest);
 
-        System.out.printf("Max flow for this graph = %d", maxFlow);
+        System.out.printf("Max flow = %d", maxFlow);
 
         sc.close();
     }
