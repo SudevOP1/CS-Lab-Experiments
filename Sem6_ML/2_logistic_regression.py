@@ -12,70 +12,43 @@ class Point:
         self.y = y
 
 
-def apply_linear_regression_using_statistical_method(
-    points: list[Point],
-) -> tuple[float, float]:
-    """
-    applies linear regressions using statistical method
-    on the points passed and returns slope, y-intercept
-    """
-
-    num_points = len(points)
-
-    sum_x = 0
-    sum_y = 0
-    sum_xy = 0
-    sum_x_sq = 0
-
-    for point in points:
-        sum_x += point.x
-        sum_y += point.y
-        sum_xy += point.x * point.y
-        sum_x_sq += point.x * point.x
-
-    m = ((num_points * sum_xy) - (sum_x * sum_y)) / (
-        (num_points * sum_x_sq) - (sum_x * sum_x)
-    )
-    c = ((sum_y) - (m * sum_x)) / num_points
-
-    return m, c
-
-
-def apply_linear_regression_using_gradient_descent(
+def apply_linear_regression_using_logistic_regression(
     points: list[Point], num_epochs: int = 100, learning_rate: float = 0.001
 ) -> tuple[float, float]:
     """
-    applies linear regressions using gradient descent
+    applies linear regressions using logistic regression
     on the points passed and returns slope, y-intercept
     """
 
     num_points = len(points)
 
-    def get_m_derivative(m: float, c: float) -> float:
-        sum_thing = 0
-        for point in points:
-            xi = point.x
-            yi = point.y
-            sum_thing += xi * ((m * xi + c) - yi)
-        dm = 2 * sum_thing / num_points
-        return dm
-
-    def get_c_derivative(m: float, c: float) -> float:
-        sum_thing = 0
-        for point in points:
-            xi = point.x
-            yi = point.y
-            sum_thing += (m * xi + c) - yi
-        dc = 2 * sum_thing / num_points
-        return dc
+    def sigmoid(z: float) -> float:
+        if z >= 0:
+            return 1 / (1 + math.exp(-z))
+        exp_z = math.exp(z)
+        return exp_z / (1 + exp_z)
 
     m = 0.0
     c = 0.0
     for _ in range(num_epochs):
-        dm = get_m_derivative(m, c)
-        dc = get_c_derivative(m, c)
-        m = m - learning_rate * dm
-        c = c - learning_rate * dc
+        dm = 0.0
+        dc = 0.0
+
+        for point in points:
+            xi = point.x
+            yi = point.y
+
+            prediction = sigmoid(m * xi + c)
+            error = prediction - yi
+
+            dm += xi * error
+            dc += error
+
+        dm /= num_points
+        dc /= num_points
+
+        m -= learning_rate * dm
+        c -= learning_rate * dc
 
     return m, c
 
@@ -161,12 +134,6 @@ if __name__ == "__main__":
 
     display_linear_regression(
         points,
-        apply_linear_regression_using_statistical_method,
-        "Statistical Method",
-    )
-
-    display_linear_regression(
-        points,
-        apply_linear_regression_using_gradient_descent,
-        "Gradient Descent",
+        apply_linear_regression_using_logistic_regression,
+        "Logistic Regression",
     )
