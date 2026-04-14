@@ -1,3 +1,10 @@
+
+# python cache
 __pycache__/
+
+# virtual enviroments
 venv/
 
+# temporary / tests
+tmp/
+tests/
