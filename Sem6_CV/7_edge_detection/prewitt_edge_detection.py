@@ -1,9 +1,6 @@
 from PIL import Image
 import numpy as np
 
-from PIL import Image
-import numpy as np
-
 
 def normalize_to_uint8(arr: np.ndarray) -> np.ndarray:
     arr = np.abs(arr)
