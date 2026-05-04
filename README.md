@@ -205,16 +205,17 @@
 
 ## Sem6_CV
 
-| Exp No | Todo | Name                |
-| ------ | ---- | ------------------- |
-| 01     | ✅   | img_display         |
-| 02     | ✅   | img_transformations |
-| 03     | ✅   | img_recognition     |
-| 04     | ✅   | erosion_dilation    |
-| 05     | ✅   | hit_miss_fit        |
-| 06     | ✅   | thinning            |
-| 07     | ✅   | edge_detection      |
-| 08     | ✅   | hough_transform     |
+| Exp No | Todo | Name                    |
+| ------ | ---- | ----------------------- |
+| 01     | ✅   | img_display             |
+| 02     | ✅   | img_transformations     |
+| 03     | ✅   | img_recognition         |
+| 04     | ✅   | erosion_dilation        |
+| 05     | ✅   | hit_miss_fit            |
+| 06     | ✅   | thinning                |
+| 07     | ✅   | edge_detection          |
+| 08     | ✅   | hough_transform         |
+| 09     | ✅   | harris_corner_detection |
 
 ## Sem6_ML
 
