@@ -214,6 +214,7 @@
 | 05     | ✅   | hit_miss_fit        |
 | 06     | ✅   | thinning            |
 | 07     | ✅   | edge_detection      |
+| 08     | ✅   | hough_transform     |
 
 ## Sem6_ML
 
