@@ -1,9 +1,9 @@
-
 from PIL import Image
 import numpy as np
 
 from PIL import Image
 import numpy as np
+
 
 def normalize_to_uint8(arr: np.ndarray) -> np.ndarray:
     arr = np.abs(arr)
@@ -25,17 +25,23 @@ def apply_sobel_edge_detection(
         img_array = np.array(img, dtype=np.float32)
 
         # sobel kernels
-        kernel_x = np.array([
-            [-1, 0, 1],
-            [-2, 0, 2],
-            [-1, 0, 1],
-        ], dtype=np.float32)
+        kernel_x = np.array(
+            [
+                [-1, 0, 1],
+                [-2, 0, 2],
+                [-1, 0, 1],
+            ],
+            dtype=np.float32,
+        )
 
-        kernel_y = np.array([
-            [1, 2, 1],
-            [0, 0, 0],
-            [-1, -2, -1],
-        ], dtype=np.float32)
+        kernel_y = np.array(
+            [
+                [1, 2, 1],
+                [0, 0, 0],
+                [-1, -2, -1],
+            ],
+            dtype=np.float32,
+        )
 
         # padding
         padded_img = np.pad(img_array, pad_width=1, mode="edge")
@@ -47,7 +53,7 @@ def apply_sobel_edge_detection(
         # convolution (compute both in one pass)
         for i in range(img_array.shape[0]):
             for j in range(img_array.shape[1]):
-                region = padded_img[i:i+3, j:j+3]
+                region = padded_img[i : i + 3, j : j + 3]
                 gx[i, j] = np.sum(region * kernel_x)
                 gy[i, j] = np.sum(region * kernel_y)
 
@@ -75,6 +81,8 @@ def apply_sobel_edge_detection(
 
     except Exception as e:
         return False, str(e)
+
+
 if __name__ == "__main__":
 
     output_ok, output = apply_sobel_edge_detection(
