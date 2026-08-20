@@ -8,3 +8,6 @@ venv/
 # temporary / tests
 tmp/
 tests/
+
+# environment variables
+.env
