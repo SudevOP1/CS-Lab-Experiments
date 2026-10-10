@@ -11,3 +11,6 @@ tests/
 
 # environment variables
 .env
+
+# outputs
+*/outputs/
