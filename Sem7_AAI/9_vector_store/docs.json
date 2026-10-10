@@ -1,0 +1,122 @@
+[
+  {
+    "id": 0,
+    "category": "space",
+    "text": "The James Webb telescope observes infrared light from the earliest galaxies formed after the Big Bang."
+  },
+  {
+    "id": 1,
+    "category": "space",
+    "text": "Mars has the largest volcano in the solar system, Olympus Mons, which is about three times the height of Everest."
+  },
+  {
+    "id": 2,
+    "category": "space",
+    "text": "A black hole is a region where gravity is so strong that not even light can escape its event horizon."
+  },
+  {
+    "id": 3,
+    "category": "space",
+    "text": "Astronauts on the International Space Station experience sixteen sunrises and sunsets every day."
+  },
+  {
+    "id": 4,
+    "category": "health",
+    "text": "Drinking enough water helps regulate body temperature and keeps joints lubricated."
+  },
+  {
+    "id": 5,
+    "category": "health",
+    "text": "Adults need seven to nine hours of sleep each night to support memory and immune function."
+  },
+  {
+    "id": 6,
+    "category": "health",
+    "text": "Regular aerobic exercise such as running or cycling strengthens the heart and lowers blood pressure."
+  },
+  {
+    "id": 7,
+    "category": "health",
+    "text": "Vitamin D is produced by the skin when exposed to sunlight and is important for bone strength."
+  },
+  {
+    "id": 8,
+    "category": "cooking",
+    "text": "To make fluffy rice, rinse the grains until the water runs clear and let it rest after cooking."
+  },
+  {
+    "id": 9,
+    "category": "cooking",
+    "text": "Searing meat on a very hot pan creates a brown crust through the Maillard reaction."
+  },
+  {
+    "id": 10,
+    "category": "cooking",
+    "text": "Bread dough must be kneaded to develop gluten, which gives the loaf its chewy structure."
+  },
+  {
+    "id": 11,
+    "category": "cooking",
+    "text": "Adding a pinch of salt to desserts balances sweetness and enhances the other flavours."
+  },
+  {
+    "id": 12,
+    "category": "programming",
+    "text": "Python lists are dynamic arrays that can grow and shrink, while tuples are immutable."
+  },
+  {
+    "id": 13,
+    "category": "programming",
+    "text": "Git lets developers track changes to source code and collaborate using branches and merges."
+  },
+  {
+    "id": 14,
+    "category": "programming",
+    "text": "A REST API exposes resources over HTTP using methods like GET, POST, PUT and DELETE."
+  },
+  {
+    "id": 15,
+    "category": "programming",
+    "text": "Recursion is when a function calls itself, and it needs a base case to stop."
+  },
+  {
+    "id": 16,
+    "category": "finance",
+    "text": "Compound interest means you earn interest on both your savings and the interest already earned."
+  },
+  {
+    "id": 17,
+    "category": "finance",
+    "text": "Diversifying investments across stocks, bonds and other assets reduces overall risk."
+  },
+  {
+    "id": 18,
+    "category": "finance",
+    "text": "Inflation reduces the purchasing power of money as the prices of goods rise over time."
+  },
+  {
+    "id": 19,
+    "category": "finance",
+    "text": "An emergency fund should cover three to six months of essential living expenses."
+  },
+  {
+    "id": 20,
+    "category": "sports",
+    "text": "In cricket, a bowler delivers six legal balls in one over."
+  },
+  {
+    "id": 21,
+    "category": "sports",
+    "text": "A marathon is a long distance running race of about 42 kilometres."
+  },
+  {
+    "id": 22,
+    "category": "sports",
+    "text": "In football, a player is offside if they are nearer to the goal line than the second last defender when the ball is played."
+  },
+  {
+    "id": 23,
+    "category": "sports",
+    "text": "Tennis scoring goes love, fifteen, thirty, forty and then game."
+  }
+]
