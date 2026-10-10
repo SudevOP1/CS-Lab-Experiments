@@ -72,6 +72,12 @@ if __name__ == "__main__":
     # rules
     rules = [
         Rule(
+            DETERMINER,
+            [
+                r"the|an|a|"
+            ]
+        ),
+        Rule(
             VERB,
             [
                 r".+ing"
