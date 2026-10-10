@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 
 from crewai import LLM, Agent, Crew, Process, Task
@@ -8,6 +9,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from tavily import TavilyClient
 
+sys.stdout.reconfigure(encoding="utf-8")  # LLM output has chars cp1252 cannot encode
 load_dotenv()
 
 MODEL = "qwen/qwen3.8-27b"  # gpt-oss on Groq breaks CrewAI tool calls (hallucinated browser tool)
@@ -31,8 +33,11 @@ MAX_RPM = 3  # Groq free tier allows ~7k input tokens/min, so keep calls slow
 MAX_SEARCHES = 2  # per task, keeps the agent context small
 
 WIDTH = 90
-BOLD, DIM, RESET = "\033[1m", "\033[2m", "\033[0m"
-GREEN, RED, YELLOW, CYAN = "\033[32m", "\033[31m", "\033[33m", "\033[36m"
+if sys.stdout.isatty():  # no colour codes when output is redirected to a file
+    BOLD, DIM, RESET = "\033[1m", "\033[2m", "\033[0m"
+    GREEN, RED, YELLOW, CYAN = "\033[32m", "\033[31m", "\033[33m", "\033[36m"
+else:
+    BOLD = DIM = RESET = GREEN = RED = YELLOW = CYAN = ""
 
 os.system("")  # enables ANSI colours in the Windows terminal
 
