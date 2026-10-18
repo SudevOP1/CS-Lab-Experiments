@@ -1,0 +1,320 @@
+[
+    {
+        "id": "exp9_flow",
+        "type": "tab",
+        "label": "Exp9 Smart Campus",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "exp9_broker",
+        "type": "mqtt-broker",
+        "name": "Local Mosquitto",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true
+    },
+    {
+        "id": "exp9_ui_tab",
+        "type": "ui_tab",
+        "name": "Smart Campus",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "exp9_ui_group",
+        "type": "ui_group",
+        "name": "Room 101",
+        "tab": "exp9_ui_tab",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "exp9_in",
+        "type": "mqtt in",
+        "z": "exp9_flow",
+        "name": "campus sensor",
+        "topic": "ioe/exp9/campus/sensor",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "exp9_broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 130,
+        "y": 200,
+        "wires": [
+            [
+                "exp9_json",
+                "exp9_raw_debug"
+            ]
+        ]
+    },
+    {
+        "id": "exp9_json",
+        "type": "json",
+        "z": "exp9_flow",
+        "name": "",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 310,
+        "y": 200,
+        "wires": [
+            [
+                "exp9_func"
+            ]
+        ]
+    },
+    {
+        "id": "exp9_raw_debug",
+        "type": "debug",
+        "z": "exp9_flow",
+        "name": "raw",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 310,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "exp9_func",
+        "type": "function",
+        "z": "exp9_flow",
+        "name": "validate + analyze",
+        "func": "// validate + analyze campus readings\nconst LIMITS = { temperature_c: [-10, 60], occupancy: [0, 500], light_lux: [0, 100000] };\nconst MAX_OCCUPANCY = 40;\nconst p = msg.payload;\n\nif (typeof p !== \"object\" || p === null) {\n    node.warn(\"payload is not json\");\n    return null;\n}\nfor (const [field, [low, high]] of Object.entries(LIMITS)) {\n    const v = p[field];\n    if (typeof v !== \"number\" || isNaN(v) || v < low || v > high) {\n        node.warn(`invalid reading: ${field} = ${JSON.stringify(v)}`);\n        return null;\n    }\n}\n\nlet temps = context.get(\"temps\") || [];\ntemps.push(p.temperature_c);\nif (temps.length > 5) temps.shift();\ncontext.set(\"temps\", temps);\nconst avgTemp = Number((temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(2));\n\nlet status = \"NORMAL\";\nif (p.temperature_c >= 35) status = \"HIGH TEMPERATURE\";\nelse if (p.occupancy > MAX_OCCUPANCY) status = \"HIGH OCCUPANCY\";\nelse if (p.light_lux < 150 && p.occupancy > 0) status = \"LOW LIGHT\";\n\nconst result = {\n    application: \"SmartCampus\",\n    device: p.device,\n    status: status,\n    temperature_c: p.temperature_c,\n    avg_temperature_c: avgTemp,\n    occupancy: p.occupancy,\n    occupancy_pct: Number((p.occupancy / MAX_OCCUPANCY * 100).toFixed(1)),\n    light_lux: p.light_lux,\n};\nconst alert = status === \"NORMAL\" ? null : { payload: { status: \"WARNING\", reason: status, device: p.device } };\n\n// outputs: status, alert, temperature, occupancy, light, status text, avg temp\nreturn [\n    { payload: result },\n    alert,\n    { payload: p.temperature_c, topic: \"temperature\" },\n    { payload: p.occupancy },\n    { payload: p.light_lux },\n    { payload: status },\n    { payload: avgTemp },\n];\n",
+        "outputs": 7,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 200,
+        "wires": [
+            [
+                "exp9_status_out",
+                "exp9_processed_debug"
+            ],
+            [
+                "exp9_alert_out"
+            ],
+            [
+                "exp9_temp_gauge",
+                "exp9_temp_chart"
+            ],
+            [
+                "exp9_occ_gauge"
+            ],
+            [
+                "exp9_light_gauge"
+            ],
+            [
+                "exp9_status_text"
+            ],
+            [
+                "exp9_avg_text"
+            ]
+        ]
+    },
+    {
+        "id": "exp9_status_out",
+        "type": "mqtt out",
+        "z": "exp9_flow",
+        "name": "status",
+        "topic": "ioe/exp9/campus/status",
+        "qos": "1",
+        "retain": "false",
+        "broker": "exp9_broker",
+        "x": 790,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "exp9_processed_debug",
+        "type": "debug",
+        "z": "exp9_flow",
+        "name": "processed",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 790,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "exp9_alert_out",
+        "type": "mqtt out",
+        "z": "exp9_flow",
+        "name": "alert",
+        "topic": "ioe/exp9/campus/alert",
+        "qos": "1",
+        "retain": "false",
+        "broker": "exp9_broker",
+        "x": 790,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "exp9_status_text",
+        "type": "ui_text",
+        "z": "exp9_flow",
+        "group": "exp9_ui_group",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "Status",
+        "label": "Status",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 800,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "exp9_temp_gauge",
+        "type": "ui_gauge",
+        "z": "exp9_flow",
+        "name": "Temperature",
+        "group": "exp9_ui_group",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Temperature",
+        "label": "°C",
+        "format": "{{value}}",
+        "min": 0,
+        "max": 50,
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 800,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "exp9_avg_text",
+        "type": "ui_text",
+        "z": "exp9_flow",
+        "group": "exp9_ui_group",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "name": "Avg Temperature (°C)",
+        "label": "Avg Temperature (°C)",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 800,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "exp9_occ_gauge",
+        "type": "ui_gauge",
+        "z": "exp9_flow",
+        "name": "Occupancy",
+        "group": "exp9_ui_group",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Occupancy",
+        "label": "people",
+        "format": "{{value}}",
+        "min": 0,
+        "max": 60,
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 800,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "exp9_light_gauge",
+        "type": "ui_gauge",
+        "z": "exp9_flow",
+        "name": "Light",
+        "group": "exp9_ui_group",
+        "order": 5,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Light",
+        "label": "lux",
+        "format": "{{value}}",
+        "min": 0,
+        "max": 1000,
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 800,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "exp9_temp_chart",
+        "type": "ui_chart",
+        "z": "exp9_flow",
+        "name": "temperature history",
+        "group": "exp9_ui_group",
+        "order": 6,
+        "width": 0,
+        "height": 0,
+        "label": "Temperature History",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "x": 810,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    }
+]
