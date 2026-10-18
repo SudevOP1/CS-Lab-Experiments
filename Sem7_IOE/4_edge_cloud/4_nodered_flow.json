@@ -1,0 +1,254 @@
+[
+    {
+        "id": "exp4_flow",
+        "type": "tab",
+        "label": "Exp4 Edge to Cloud",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "exp4_broker",
+        "type": "mqtt-broker",
+        "name": "Local Mosquitto",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true
+    },
+    {
+        "id": "exp4_tls",
+        "type": "tls-config",
+        "name": "AWS IoT certs",
+        "cert": "certs/certificate.pem.crt",
+        "key": "certs/private.pem.key",
+        "ca": "certs/AmazonRootCA1.pem",
+        "certname": "",
+        "keyname": "",
+        "caname": "",
+        "servername": "",
+        "verifyservercert": true
+    },
+    {
+        "id": "exp4_aws_broker",
+        "type": "mqtt-broker",
+        "name": "AWS IoT Core",
+        "broker": "YOUR_ENDPOINT-ats.iot.ap-south-1.amazonaws.com",
+        "port": "8883",
+        "clientid": "exp4-edge-gateway",
+        "autoConnect": true,
+        "usetls": true,
+        "tls": "exp4_tls",
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true
+    },
+    {
+        "id": "exp4_ui_tab",
+        "type": "ui_tab",
+        "name": "Soil Moisture",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "exp4_ui_group",
+        "type": "ui_group",
+        "name": "Field 1 (filtered at edge)",
+        "tab": "exp4_ui_tab",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false
+    },
+    {
+        "id": "exp4_in",
+        "type": "mqtt in",
+        "z": "exp4_flow",
+        "name": "soil raw",
+        "topic": "ioe/exp4/soil/raw",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "exp4_broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 200,
+        "wires": [
+            [
+                "exp4_json",
+                "exp4_raw_debug"
+            ]
+        ]
+    },
+    {
+        "id": "exp4_json",
+        "type": "json",
+        "z": "exp4_flow",
+        "name": "",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 290,
+        "y": 200,
+        "wires": [
+            [
+                "exp4_func"
+            ]
+        ]
+    },
+    {
+        "id": "exp4_raw_debug",
+        "type": "debug",
+        "z": "exp4_flow",
+        "name": "raw",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 290,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "exp4_func",
+        "type": "function",
+        "z": "exp4_flow",
+        "name": "edge filter",
+        "func": "// edge filtering: drop invalid and redundant readings, alert below threshold\nconst THRESHOLD = 30;\nconst DEADBAND = 2;\nconst p = msg.payload;\nconst m = p.moisture;\n\nif (typeof m !== \"number\" || m < 0 || m > 100) {\n    node.warn(`invalid reading: ${JSON.stringify(p)}`);\n    return null;\n}\n\nconst alert = m < THRESHOLD;\nconst last = context.get(\"last\");\nif (last !== undefined && Math.abs(m - last) < DEADBAND && alert === context.get(\"lastAlert\")) {\n    return null; // redundant reading, not forwarded\n}\ncontext.set(\"last\", m);\ncontext.set(\"lastAlert\", alert);\n\nconst status = alert ? \"DRY - IRRIGATE\" : \"OK\";\nconst result = {\n    device: p.device,\n    moisture: m,\n    status: status,\n    alert: alert,\n    timestamp: Math.floor(Date.now() / 1000),\n};\n\n// outputs: processed (cloud), moisture value, status text\nreturn [\n    { payload: result },\n    { payload: m, topic: \"moisture\" },\n    { payload: status },\n];\n",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 200,
+        "wires": [
+            [
+                "exp4_cloud_out",
+                "exp4_processed_debug"
+            ],
+            [
+                "exp4_gauge",
+                "exp4_chart"
+            ],
+            [
+                "exp4_status_text"
+            ]
+        ]
+    },
+    {
+        "id": "exp4_cloud_out",
+        "type": "mqtt out",
+        "z": "exp4_flow",
+        "name": "aws iot",
+        "topic": "ioe/exp4/soil/processed",
+        "qos": "1",
+        "retain": "false",
+        "broker": "exp4_aws_broker",
+        "x": 720,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "exp4_processed_debug",
+        "type": "debug",
+        "z": "exp4_flow",
+        "name": "processed",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 730,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "exp4_status_text",
+        "type": "ui_text",
+        "z": "exp4_flow",
+        "group": "exp4_ui_group",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "Alert Status",
+        "label": "Alert Status",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 730,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "exp4_gauge",
+        "type": "ui_gauge",
+        "z": "exp4_flow",
+        "name": "Soil Moisture",
+        "group": "exp4_ui_group",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Soil Moisture",
+        "label": "%",
+        "format": "{{value}}",
+        "min": 0,
+        "max": 100,
+        "colors": [
+            "#ca3838",
+            "#e6e600",
+            "#00b500"
+        ],
+        "seg1": "30",
+        "seg2": "60",
+        "x": 730,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "exp4_chart",
+        "type": "ui_chart",
+        "z": "exp4_flow",
+        "name": "moisture history",
+        "group": "exp4_ui_group",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "label": "Filtered Moisture History",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "0",
+        "ymax": "100",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "x": 740,
+        "y": 260,
+        "wires": [
+            []
+        ]
+    }
+]
