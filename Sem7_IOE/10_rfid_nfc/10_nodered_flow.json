@@ -1,0 +1,211 @@
+[
+    {
+        "id": "exp10_flow",
+        "type": "tab",
+        "label": "Exp10 RFID Access",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "exp10_broker",
+        "type": "mqtt-broker",
+        "name": "Local Mosquitto",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true
+    },
+    {
+        "id": "exp10_ui_tab",
+        "type": "ui_tab",
+        "name": "RFID Access",
+        "icon": "dashboard",
+        "order": 2,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "exp10_ui_group",
+        "type": "ui_group",
+        "name": "Access Log",
+        "tab": "exp10_ui_tab",
+        "order": 1,
+        "disp": true,
+        "width": "12",
+        "collapse": false
+    },
+    {
+        "id": "exp10_in",
+        "type": "mqtt in",
+        "z": "exp10_flow",
+        "name": "rfid scan",
+        "topic": "ioe/rfid/scan",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "exp10_broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 110,
+        "y": 200,
+        "wires": [
+            [
+                "exp10_json"
+            ]
+        ]
+    },
+    {
+        "id": "exp10_json",
+        "type": "json",
+        "z": "exp10_flow",
+        "name": "",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 270,
+        "y": 200,
+        "wires": [
+            [
+                "exp10_func"
+            ]
+        ]
+    },
+    {
+        "id": "exp10_func",
+        "type": "function",
+        "z": "exp10_flow",
+        "name": "registry + decision",
+        "func": "// registry + decision + server timestamp (registry copied from 10_tag_registry.json)\nconst READERS = { \"LAB-A-READER-01\": \"LAB-A\", \"LAB-B-READER-01\": \"LAB-B\", \"STORE-READER-01\": \"STORE\" };\nconst TAGS = {\n    \"A1B2C3D4\": { entity_id: \"USER-001\", locations: [\"LAB-A\"], status: \"ACTIVE\" },\n    \"99AABBCC\": { entity_id: \"USER-002\", locations: [\"LAB-A\", \"LAB-B\"], status: \"ACTIVE\" },\n    \"55667788\": { entity_id: \"USER-003\", locations: [\"LAB-A\"], status: \"INACTIVE\" },\n    \"11223344\": { entity_id: \"ASSET-007\", locations: [\"*\"], status: \"ACTIVE\" },\n};\n\nconst scan = msg.payload;\nif (typeof scan !== \"object\" || scan === null || typeof scan.tag_uid !== \"string\" || !(scan.reader_id in READERS)) {\n    node.warn(\"invalid scan message\");\n    return null;\n}\n\nconst uid = scan.tag_uid.replace(/[\\s:]/g, \"\").toUpperCase();\nconst location = READERS[scan.reader_id];\nconst eventType = scan.event_type || \"ACCESS_ATTEMPT\";\nconst tag = TAGS[uid];\n\nlet decision = \"ACCESS_GRANTED\", reason = \"authorized\";\nif (!tag) { decision = \"ACCESS_DENIED\"; reason = \"tag not registered\"; }\nelse if (tag.status !== \"ACTIVE\") { decision = \"ACCESS_DENIED\"; reason = \"tag inactive\"; }\nelse if (eventType === \"ASSET_SCAN\") { decision = \"ASSET_RECORDED\"; reason = \"asset seen at \" + location; }\nelse if (!tag.locations.includes(location)) { decision = \"ACCESS_DENIED\"; reason = \"no permission for \" + location; }\n\nconst event = {\n    timestamp: new Date().toISOString(),\n    reader_id: scan.reader_id,\n    location: location,\n    tag_uid: uid,\n    entity_id: tag ? tag.entity_id : \"UNKNOWN\",\n    event_type: eventType,\n    decision: decision,\n    reason: reason,\n};\n\nlet recent = flow.get(\"recent\") || [];\nrecent.unshift(event);\nrecent = recent.slice(0, 20);\nflow.set(\"recent\", recent);\n\nlet counts = flow.get(\"counts\") || { total: 0, granted: 0, denied: 0, asset: 0 };\ncounts.total++;\nif (decision === \"ACCESS_GRANTED\") counts.granted++;\nelse if (decision === \"ACCESS_DENIED\") counts.denied++;\nelse counts.asset++;\nflow.set(\"counts\", counts);\n\n// outputs: event, recent events table, counters\nreturn [\n    { payload: event },\n    { payload: recent },\n    { payload: `Total ${counts.total} | Granted ${counts.granted} | Denied ${counts.denied} | Asset ${counts.asset}` },\n];\n",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 200,
+        "wires": [
+            [
+                "exp10_out",
+                "exp10_debug",
+                "exp10_csv"
+            ],
+            [
+                "exp10_table"
+            ],
+            [
+                "exp10_counts"
+            ]
+        ]
+    },
+    {
+        "id": "exp10_out",
+        "type": "mqtt out",
+        "z": "exp10_flow",
+        "name": "access-events",
+        "topic": "ioe/rfid/access-events",
+        "qos": "1",
+        "retain": "false",
+        "broker": "exp10_broker",
+        "x": 720,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "exp10_debug",
+        "type": "debug",
+        "z": "exp10_flow",
+        "name": "event",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 700,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "exp10_csv",
+        "type": "csv",
+        "z": "exp10_flow",
+        "name": "",
+        "sep": ",",
+        "hdrin": "",
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "timestamp,reader_id,location,tag_uid,entity_id,event_type,decision,reason",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 690,
+        "y": 160,
+        "wires": [
+            [
+                "exp10_file"
+            ]
+        ]
+    },
+    {
+        "id": "exp10_file",
+        "type": "file",
+        "z": "exp10_flow",
+        "name": "access_log.csv",
+        "filename": "access_log.csv",
+        "filenameType": "str",
+        "appendNewline": false,
+        "createDir": false,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 860,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "exp10_table",
+        "type": "ui_template",
+        "z": "exp10_flow",
+        "group": "exp10_ui_group",
+        "name": "event table",
+        "order": 2,
+        "width": "12",
+        "height": "8",
+        "format": "<table style=\"width:100%; font-size:12px\">\n    <tr><th>Timestamp</th><th>Reader</th><th>Tag UID</th><th>Entity</th><th>Event Type</th><th>Decision</th></tr>\n    <tr ng-repeat=\"e in msg.payload\">\n        <td>{{e.timestamp}}</td><td>{{e.reader_id}}</td><td>{{e.tag_uid}}</td>\n        <td>{{e.entity_id}}</td><td>{{e.event_type}}</td>\n        <td ng-style=\"{color: e.decision == 'ACCESS_DENIED' ? 'red' : 'green'}\">{{e.decision}}</td>\n    </tr>\n</table>",
+        "storeOutMessages": true,
+        "fwdInMessages": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 700,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "exp10_counts",
+        "type": "ui_text",
+        "z": "exp10_flow",
+        "group": "exp10_ui_group",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "counters",
+        "label": "Scans",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 690,
+        "y": 280,
+        "wires": []
+    }
+]

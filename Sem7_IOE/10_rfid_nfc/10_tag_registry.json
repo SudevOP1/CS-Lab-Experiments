@@ -1,0 +1,13 @@
+{
+    "readers": {
+        "LAB-A-READER-01": "LAB-A",
+        "LAB-B-READER-01": "LAB-B",
+        "STORE-READER-01": "STORE"
+    },
+    "tags": {
+        "A1B2C3D4": {"entity_id": "USER-001", "description": "Student test card", "locations": ["LAB-A"], "status": "ACTIVE"},
+        "99AABBCC": {"entity_id": "USER-002", "description": "Faculty card", "locations": ["LAB-A", "LAB-B"], "status": "ACTIVE"},
+        "55667788": {"entity_id": "USER-003", "description": "Former student card", "locations": ["LAB-A"], "status": "INACTIVE"},
+        "11223344": {"entity_id": "ASSET-007", "description": "Portable projector", "locations": ["*"], "status": "ACTIVE"}
+    }
+}
